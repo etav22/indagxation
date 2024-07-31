@@ -11,6 +11,7 @@ python = ">=3.11,<3.13"
 dagster = "^1.7.15"
 langchain-community = "^0.2.10"
 langchain = "^0.2.11"
+bs4 = "^0.0.2"
 
 [tool.poetry.group.dev.dependencies]
 ipykernel = "^6.29.5"
@@ -24,6 +25,10 @@ pytest = "^8.3.1"
 [tool.pyright]
 venvPath = "."
 venv = ".venv"
+
+[tool.dagster]
+module_name = "indagxation"
+
 
 [tool.poetry.group.lint.dependencies]
 pre-commit = "^3.7.1"
