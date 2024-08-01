@@ -1,3 +1,5 @@
+export DAGSTER_HOME:=`pwd` + '/.dagster'
+
 install:
 	poetry install
 	poetry run pre-commit install
@@ -9,4 +11,8 @@ lint:
 	poetry run pre-commit run --all-files
 
 run:
-	poetry run dagster dev
+    mkdir -p .dagster
+    poetry run dagster dev
+
+chroma:
+	docker run -p 8000:8000 -d --name chroma chromadb/chroma

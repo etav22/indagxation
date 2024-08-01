@@ -1,0 +1,6 @@
+[32m2024-07-30 21:31:51 -0500[0m - dagster - [34mDEBUG[0m - __ASSET_JOB - 3b29c9d7-5f23-4b26-830f-e3f72bcc5deb - 18915 - LOGS_CAPTURED - Started capturing logs in process (pid: 18915).
+[32m2024-07-30 21:31:51 -0500[0m - dagster - [34mDEBUG[0m - __ASSET_JOB - 3b29c9d7-5f23-4b26-830f-e3f72bcc5deb - 18915 - create_collection - STEP_START - Started execution of step "create_collection".
+[32m2024-07-30 21:31:51 -0500[0m - dagster - [34mDEBUG[0m - __ASSET_JOB - 3b29c9d7-5f23-4b26-830f-e3f72bcc5deb - create_collection - Created collection Collection(id=eeb330c5-c682-494e-9b18-61635af31c99, name=documents).
+[32m2024-07-30 21:31:51 -0500[0m - dagster - [34mDEBUG[0m - __ASSET_JOB - 3b29c9d7-5f23-4b26-830f-e3f72bcc5deb - 18915 - create_collection - STEP_OUTPUT - Yielded output "result" of type "Nothing". (Type check passed).
+[32m2024-07-30 21:31:51 -0500[0m - dagster - [34mDEBUG[0m - __ASSET_JOB - 3b29c9d7-5f23-4b26-830f-e3f72bcc5deb - 18915 - create_collection - ASSET_MATERIALIZATION - Materialized value create_collection.
+[32m2024-07-30 21:31:51 -0500[0m - dagster - [34mDEBUG[0m - __ASSET_JOB - 3b29c9d7-5f23-4b26-830f-e3f72bcc5deb - 18915 - create_collection - STEP_SUCCESS - Finished execution of step "create_collection" in 162ms.
