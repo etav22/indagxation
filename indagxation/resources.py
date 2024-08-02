@@ -1,23 +1,22 @@
 import uuid
+from dataclasses import dataclass
 
-from pydantic import PrivateAttr
 from dagster import ConfigurableResource, InitResourceContext, get_dagster_logger
 import chromadb
 
 logger = get_dagster_logger()
 
 
-class ChromaResource(ConfigurableResource):
+@dataclass
+class ChromaClient:
     """A resource for interacting with a Chroma database."""
 
     host: str
     port: int = 8000
     default_collection: str = "documents"
     distance_fn: str = "cosine"
-    _client = PrivateAttr()
-    _collection = PrivateAttr()
 
-    def setup_for_execution(self, context: InitResourceContext) -> None:
+    def __post_init__(self) -> None:
         logger.debug(f"Setting up ChromaResource with host {self.host}.")
         self._client = chromadb.HttpClient(
             host=self.host,
@@ -29,8 +28,6 @@ class ChromaResource(ConfigurableResource):
                 f"Invalid distance function {self.distance_fn}. Defaulting to cosine."
             )
             self.distance_fn = "cosine"
-
-        return super().setup_for_execution(context)
 
     def _create_collection(self, collection: str) -> None:
         """Create a collection in the database.
@@ -46,7 +43,7 @@ class ChromaResource(ConfigurableResource):
         except Exception as e:
             raise Exception(f"Failed to create collection {collection}.") from e
 
-    def embed_docs(self, docs: list[str], collection: str = "documents") -> None:
+    def embed(self, docs: list[str], collection: str = "documents") -> None:
         """Embed documents into the collection.
 
         Args:
@@ -55,7 +52,7 @@ class ChromaResource(ConfigurableResource):
         try:
             self._collection = self._client.get_collection(collection)
         except ValueError as e:
-            raise Exception(f"Collection {collection} does not exist.") from e
+            logger.error(f"Collection {collection} does not exist: {e}.")
             self._create_collection(collection)
 
         self._collection.add(documents=docs, ids=[str(uuid.uuid4()) for _ in docs])
@@ -63,7 +60,7 @@ class ChromaResource(ConfigurableResource):
             f"✅ Embedded {len(docs)} documents into collection {self.default_collection}."
         )
 
-    def query_docs(self, query: str, results: int) -> chromadb.QueryResult:
+    def query(self, query: str, results: int) -> chromadb.QueryResult:
         """Query the collection for documents.
 
         Args:
@@ -92,3 +89,18 @@ class ChromaResource(ConfigurableResource):
             logger.info(f"✅ Deleted {name} collection.")
         except Exception as e:
             logger.error(f"{e}: {name} collection does not exist.")
+
+
+class ChromaResource(ConfigurableResource):
+    host: str
+    port: int = 8000
+    default_collection: str = "documents"
+    distance_fn: str = "cosine"
+
+    def create_resource(self, context: InitResourceContext) -> ChromaClient:
+        return ChromaClient(
+            host=self.host,
+            port=self.port,
+            default_collection=self.default_collection,
+            distance_fn=self.distance_fn,
+        )

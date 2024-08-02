@@ -24,7 +24,7 @@ def embed_docs(
     """Embed documents into the Chroma database."""
 
     _docs = [doc.page_content for doc in load_docs]
-    chroma_client.embed_docs(_docs, collection=config.collection)
+    chroma_client.embed(_docs, collection=config.collection)
 
     return None
 
@@ -32,7 +32,7 @@ def embed_docs(
 @asset
 def retrieve_docs(config: RetrievalConfig, chroma_client: ChromaResource):
     """Retrieve documents from the Chroma database."""
-    query_result = chroma_client.query_docs(query=config.query, results=config.results)
+    query_result = chroma_client.query(query=config.query, results=config.results)
     logger.debug(f"Query result: {query_result}")
 
     return query_result
