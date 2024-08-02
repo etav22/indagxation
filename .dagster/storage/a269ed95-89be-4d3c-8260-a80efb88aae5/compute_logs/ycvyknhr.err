@@ -1,9 +1,0 @@
-[32m2024-07-31 19:45:07 -0500[0m - dagster - [34mDEBUG[0m - __ASSET_JOB - a269ed95-89be-4d3c-8260-a80efb88aae5 - 36642 - LOGS_CAPTURED - Started capturing logs in process (pid: 36642).
-[32m2024-07-31 19:45:07 -0500[0m - dagster - [34mDEBUG[0m - __ASSET_JOB - a269ed95-89be-4d3c-8260-a80efb88aae5 - 36642 - embed_docs - STEP_START - Started execution of step "embed_docs".
-[32m2024-07-31 19:45:07 -0500[0m - dagster - [34mDEBUG[0m - __ASSET_JOB - a269ed95-89be-4d3c-8260-a80efb88aae5 - embed_docs - Loading file from: /Users/eliastavarez/Projects/indagxation/.dagster/storage/load_docs using PickledObjectFilesystemIOManager...
-[32m2024-07-31 19:45:07 -0500[0m - dagster - [34mDEBUG[0m - __ASSET_JOB - a269ed95-89be-4d3c-8260-a80efb88aae5 - 36642 - embed_docs - LOADED_INPUT - Loaded input "load_docs" using input manager "io_manager", from output "result" of step "load_docs"
-[32m2024-07-31 19:45:07 -0500[0m - dagster - [34mDEBUG[0m - __ASSET_JOB - a269ed95-89be-4d3c-8260-a80efb88aae5 - 36642 - embed_docs - STEP_INPUT - Got input "load_docs" of type "[Document]". (Type check passed).
-[32m2024-07-31 19:45:08 -0500[0m - dagster - [34mINFO[0m - __ASSET_JOB - a269ed95-89be-4d3c-8260-a80efb88aae5 - embed_docs - ✅ Embedded 1 documents into collection documents.
-[32m2024-07-31 19:45:08 -0500[0m - dagster - [34mDEBUG[0m - __ASSET_JOB - a269ed95-89be-4d3c-8260-a80efb88aae5 - 36642 - embed_docs - STEP_OUTPUT - Yielded output "result" of type "Nothing". (Type check passed).
-[32m2024-07-31 19:45:08 -0500[0m - dagster - [34mDEBUG[0m - __ASSET_JOB - a269ed95-89be-4d3c-8260-a80efb88aae5 - 36642 - embed_docs - ASSET_MATERIALIZATION - Materialized value embed_docs.
-[32m2024-07-31 19:45:08 -0500[0m - dagster - [34mDEBUG[0m - __ASSET_JOB - a269ed95-89be-4d3c-8260-a80efb88aae5 - 36642 - embed_docs - STEP_SUCCESS - Finished execution of step "embed_docs" in 1.04s.
