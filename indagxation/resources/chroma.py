@@ -56,7 +56,7 @@ class ChromaClient:
         """
         try:
             self._collection = self._client.get_collection(collection)
-        except ValueError as e:
+        except Exception as e:
             logger.warning(
                 f"Collection {collection} does not exist: {e}. Creating collection."
             )

@@ -2,7 +2,7 @@ from dagster import Config
 
 
 class RequestsConfig(Config):
-    repo: str = "dagster-io/dagster"
+    base_url: str = "https://api.github.com/repos/dagster-io/dagster/contents/docs/content?ref=master"
     timeout: int = 30
 
 

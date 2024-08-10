@@ -1,51 +1,80 @@
 import os
-import requests
 
-
-from dagster import asset, get_dagster_logger
+from dagster import asset, get_dagster_logger, AssetExecutionContext
 from langchain_core.documents import Document
-from langchain_community.document_loaders import WebBaseLoader
 
-from .resources import ChromaResource
+from .resources import ChromaResource, GithubResource
 from .config import RetrievalConfig, CollectionConfig, RequestsConfig
+from .models import GithubContent
 
 logger = get_dagster_logger()
 
-# The goal with this get_docs_urls is to use the github api to get the urls of the different docs
-# We can parse through the different directories and if they are files, we can extract the url
-# We can then pass this url into the next step to load the docs
+HEADERS = {
+    "Accept": "application/vnd.github+json",
+    "Authorization": f"Bearer {os.getenv('GITHUB_TOKEN')}",
+    "X-GitHub-Api-Version": "2022-11-28",
+}
 
 
 @asset
-def get_doc_urls(config: RequestsConfig):
-    headers = {
-        "Accept": "application/vnd.github+json",
-        "Authorization": f"Bearer {os.getenv('GITHUB_TOKEN')}",
-        "X-GitHub-Api-Version": "2022-11-28",
-    }
-    url = f"https://api.github.com/repos/{config.repo}/contents"
-    response = requests.get(url, headers=headers, timeout=config.timeout)
-    logger.debug(response)
-    logger.debug(response.json())
+def github_content(
+    context: AssetExecutionContext,
+    config: RequestsConfig,
+    github_client: GithubResource,
+) -> list[GithubContent]:
+    """Retrieve content from a GitHub repository.
+
+    Args:
+        context (AssetExecutionContext): Dagster asset context.
+        config (RequestsConfig): Configuration for the request.
+
+    Returns:
+        list[str]: List of doc urls.
+    """
+    content = github_client.get_repo_files(config.base_url)
+    logger.debug(f"First 5 files: {content[:5]}")
+    context.add_output_metadata({"num_files": len(content)})
+
+    return content
 
 
 @asset
-def load_docs() -> list[Document]:
-    """Load documents from the web."""
+def decoded_docs(
+    github_client: GithubResource, github_content: list[GithubContent]
+) -> list[Document]:
+    """Download the content from the GitHub links.
 
-    docs = WebBaseLoader("https://huggingface.co/docs/transformers/index").load()
-    logger.debug(f"Loaded {docs} documents from the web.")
-    return docs
+    Args:
+        github_links (list[str]): List of GitHub content links.
+
+    Returns:
+        list[GithubContent]: List of GitHub content.
+    """
+    documents = []
+    for content in github_content:
+        logger.debug(f"Downloading content for {content.name}")
+        decoded_content = github_client.get_file_content(content.url)
+        doc = Document(
+            page_content=decoded_content,
+            metadata=content.model_dump(exclude={"content"}),
+        )
+        documents.append(doc)
+
+    return documents
 
 
 @asset
 def embed_docs(
-    config: CollectionConfig, chroma_client: ChromaResource, load_docs: list[Document]
+    config: CollectionConfig,
+    chroma_client: ChromaResource,
+    decoded_docs: list[Document],
 ) -> None:
     """Embed documents into the Chroma database."""
 
-    _docs = [doc.page_content for doc in load_docs]
-    chroma_client.embed(_docs, collection=config.collection)
+    _docs = [doc.page_content for doc in decoded_docs]
+    metadata = [doc.metadata for doc in decoded_docs]
+
+    chroma_client.embed(_docs, metadata, collection=config.collection)
 
     return None
 
