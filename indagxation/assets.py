@@ -2,6 +2,8 @@ import os
 
 from dagster import asset, get_dagster_logger, AssetExecutionContext
 from langchain_core.documents import Document
+from sentence_transformers import SentenceTransformer
+from langchain.text_splitter import RecursiveCharacterTextSplitter
 
 from .resources import ChromaResource, GithubResource
 from .config import RetrievalConfig, CollectionConfig, RequestsConfig
@@ -40,15 +42,19 @@ def github_content(
 
 @asset
 def decoded_docs(
-    github_client: GithubResource, github_content: list[GithubContent]
+    context: AssetExecutionContext,
+    github_client: GithubResource,
+    github_content: list[GithubContent],
 ) -> list[Document]:
     """Download the content from the GitHub links.
 
     Args:
-        github_links (list[str]): List of GitHub content links.
+        context (AssetExecutionContext): Dagster asset context.
+        github_client (GithubResource): GitHub client.
+        github_content (list[str]): List of GitHub content.
 
     Returns:
-        list[GithubContent]: List of GitHub content.
+        list[Document]: List of Langchain docs.
     """
     documents = []
     for content in github_content:
@@ -60,16 +66,58 @@ def decoded_docs(
         )
         documents.append(doc)
 
+    # Check the number of tokens in our documents
+    model = SentenceTransformer("all-MiniLM-L6-v2")
+    num_tokens = sum(
+        [
+            len(model.encode(doc.page_content, output_value="token_embeddings"))
+            for doc in documents
+        ]
+    )
+
+    context.add_output_metadata({"num_tokens": num_tokens})
+
     return documents
+
+
+@asset
+def chunked_docs(
+    context: AssetExecutionContext, decoded_docs: list[Document]
+) -> list[Document]:
+    """Chunk the documents into smaller pieces.
+
+    Args:
+        context (AssetExecutionContext): Dagster asset context.
+        decoded_docs (list[Document]): List of decoded documents.
+
+    Returns:
+        list[Document]: List of chunked documents.
+    """
+    model = SentenceTransformer("all-MiniLM-L6-v2")
+    splitter = RecursiveCharacterTextSplitter(
+        chunk_size=256,
+        chunk_overlap=50,
+        length_function=lambda x: len(model.encode(x, output_value="token_embeddings")),
+        is_separator_regex=False,
+    )
+    split_documents = splitter.split_documents(decoded_docs)
+    context.add_output_metadata({"num_chunks": len(split_documents)})
+    return split_documents
 
 
 @asset
 def embed_docs(
     config: CollectionConfig,
     chroma_client: ChromaResource,
-    decoded_docs: list[Document],
+    chunked_docs: list[Document],
 ) -> None:
-    """Embed documents into the Chroma database."""
+    """Embed the document chunks into the Chroma database.
+
+    Args:
+        config (CollectionConfig): Config for the collection.
+        chroma_client (ChromaResource): Chroma client to conduct vector operations.
+        chunked_docs (list[Document]): List of chunked documents to embed.
+    """
 
     _docs = [doc.page_content for doc in decoded_docs]
     metadata = [doc.metadata for doc in decoded_docs]

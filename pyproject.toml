@@ -13,6 +13,7 @@ langchain-community = "^0.2.10"
 langchain = "^0.2.11"
 bs4 = "^0.0.2"
 chromadb = "^0.5.5"
+sentence-transformers = "^3.0.1"
 
 [tool.poetry.group.dev.dependencies]
 ipykernel = "^6.29.5"
@@ -29,6 +30,7 @@ venv = ".venv"
 
 [tool.dagster]
 module_name = "indagxation"
+
 
 [tool.poetry.group.lint.dependencies]
 pre-commit = "^3.7.1"
